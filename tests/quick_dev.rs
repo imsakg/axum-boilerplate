@@ -4,6 +4,7 @@ use anyhow::Result;
 use serde_json::json;
 
 #[tokio::test]
+#[ignore = "manual smoke: start cargo run on port 5353 first"]
 async fn quick_dev() -> Result<()> {
     let hc = httpc_test::new_client("http://127.0.0.1:5353")?;
 
