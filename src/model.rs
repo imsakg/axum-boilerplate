@@ -2,7 +2,7 @@
 //! (with mock-store layer)
 
 use crate::{Error, Result};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::sync::{Arc, Mutex};
 
 /* #region: Ticket Types */

@@ -64,9 +64,11 @@ dependencies = [
  "anyhow",
  "axum",
  "httpc-test",
+ "hyper 0.14.32",
  "serde",
  "serde_json",
  "tokio",
+ "tower 0.4.13",
  "tower-cookies",
  "tower-http 0.4.4",
 ]
