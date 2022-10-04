@@ -1,6 +1,8 @@
 //! A small Axum service with an embeddable router for tests.
+pub mod config;
 pub mod error;
 pub mod model;
+pub mod validation;
 pub mod web;
 pub use error::{Error, Result};
 
