@@ -1,5 +1,6 @@
 //! A small Axum service with an embeddable router for tests.
 pub mod config;
+pub mod crypto;
 pub mod error;
 pub mod model;
 pub mod validation;
