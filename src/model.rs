@@ -1,67 +1,29 @@
-//! Simplistic Model Layer
-//! (with mock-store layer)
+//! Persisted domain records. Credentials never serialize into API responses.
+use serde::Serialize;
 
-use crate::{Error, Result};
-use serde::Deserialize;
-use std::sync::{Arc, Mutex};
-
-/* #region: Ticket Types */
-#[derive(Clone, Debug, Deserialize)]
-pub struct Ticket {
-    pub id: u64,
-    pub title: String,
+#[derive(Clone, Serialize)]
+pub struct User {
+    pub id: i64,
+    pub email: String,
+    pub display_name: String,
+    pub verified: bool,
+    pub created_at: i64,
+    #[serde(skip)]
+    pub(crate) password_hash: String,
+    #[serde(skip)]
+    pub(crate) token_version: i64,
 }
 
-#[derive(Deserialize)]
-pub struct TicketForCreate {
-    pub title: String,
-}
-/* #endregion */
-
-/* #region: Model Controller */
-#[derive(Clone)]
-pub struct ModelController {
-    tickets_store: Arc<Mutex<Vec<Option<Ticket>>>>,
-}
-
-// Constructor
-impl ModelController {
-    pub async fn new() -> Result<Self> {
+impl User {
+    pub(crate) fn from_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Self> {
         Ok(Self {
-            tickets_store: Arc::default(),
+            id: row.get("id")?,
+            email: row.get("email")?,
+            display_name: row.get("display_name")?,
+            verified: row.get("verified")?,
+            created_at: row.get("created_at")?,
+            password_hash: row.get("password_hash")?,
+            token_version: row.get("token_version")?,
         })
     }
 }
-
-// CRUD Implementation
-impl ModelController {
-    pub async fn create_ticket(&self, ticket_fc: TicketForCreate) -> Result<Ticket> {
-        let mut store = self.tickets_store.lock().unwrap();
-
-        let id = store.len() as u64; // FIXME: Use a real id generator.
-        let ticket = Ticket {
-            id,
-            title: ticket_fc.title,
-        };
-        store.push(Some(ticket.clone()));
-
-        Ok(ticket)
-    }
-
-    pub async fn list_tickets(&self) -> Result<Vec<Ticket>> {
-        let store = self.tickets_store.lock().unwrap();
-
-        let tickets = store.iter().filter_map(|ticket| ticket.clone()).collect();
-
-        Ok(tickets)
-    }
-
-    pub async fn delete_ticket(&self, id: u64) -> Result<Ticket> {
-        let mut store = self.tickets_store.lock().unwrap();
-
-        let ticket = store.get_mut(id as usize).and_then(|t| t.take());
-
-        ticket.ok_or(Error::TicketDeleteFailIdNotFound { id })
-    }
-}
-/* #endregion */
