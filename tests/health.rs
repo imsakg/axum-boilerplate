@@ -1,3 +1,4 @@
+mod common;
 use axum::{
     body::Body,
     http::{Request, StatusCode},
@@ -6,7 +7,7 @@ use tower::ServiceExt;
 
 #[tokio::test]
 async fn health_reports_ok_without_a_live_server() {
-    let response = axum_boilerplate::app()
+    let response = common::app()
         .oneshot(
             Request::builder()
                 .uri("/health")

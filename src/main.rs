@@ -1,11 +1,13 @@
-use std::net::SocketAddr;
+use axum_boilerplate::{config::Config, db::Database, state::AppState};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = SocketAddr::from(([127, 0, 0, 1], 5353));
-    println!("Server running on http://{addr}");
-    axum::Server::bind(&addr)
-        .serve(axum_boilerplate::app().into_make_service())
+    let config = Config::from_env()?;
+    let address = config.address;
+    let state = AppState::new(config.clone(), Database::open(&config.database_path)?);
+    println!("Server running on http://{address}");
+    axum::Server::bind(&address)
+        .serve(axum_boilerplate::app(state).into_make_service())
         .await?;
     Ok(())
 }
