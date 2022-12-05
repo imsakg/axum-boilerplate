@@ -4,6 +4,7 @@ pub mod config;
 pub mod crypto;
 pub mod db;
 pub mod error;
+pub mod identity;
 pub mod jwt;
 pub mod model;
 pub mod state;

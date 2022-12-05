@@ -7,6 +7,7 @@ pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/api/auth/register", post(register))
         .route("/api/auth/login", post(login))
+        .route("/api/me", axum::routing::get(me))
 }
 
 #[derive(Deserialize)]
@@ -29,6 +30,10 @@ async fn register(
         })
         .await?;
     Ok((StatusCode::CREATED, Json(user)))
+}
+
+async fn me(crate::identity::Authenticated(user): crate::identity::Authenticated) -> Json<User> {
+    Json(user)
 }
 
 #[derive(Serialize)]
