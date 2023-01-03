@@ -8,6 +8,7 @@ pub fn routes() -> Router<AppState> {
         .route("/api/auth/register", post(register))
         .route("/api/auth/login", post(login))
         .route("/api/auth/refresh", post(refresh))
+        .route("/api/auth/logout", post(logout))
         .route("/api/me", axum::routing::get(me))
 }
 
@@ -56,6 +57,22 @@ fn validate_token(token: &str) -> Result<()> {
         return Err(Error::Unauthorized);
     }
     Ok(())
+}
+
+async fn logout(
+    State(state): State<AppState>,
+    Json(input): Json<RefreshInput>,
+) -> Result<StatusCode> {
+    if validate_token(&input.refresh_token).is_ok() {
+        state
+            .run(move |state| {
+                state
+                    .db
+                    .logout_session(&crypto::fingerprint(&input.refresh_token), crypto::now())
+            })
+            .await?;
+    }
+    Ok(StatusCode::NO_CONTENT)
 }
 
 async fn refresh(

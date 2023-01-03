@@ -3,6 +3,12 @@ use crate::{Error, Result};
 use rusqlite::{params, OptionalExtension};
 
 impl Database {
+    pub fn logout_session(&self, hash: &str, now: u64) -> Result<()> {
+        self.with(|c| {
+            c.execute("UPDATE refresh_tokens SET revoked_at=?1 WHERE family_id IN (SELECT family_id FROM refresh_tokens WHERE hash=?2)",params![now,hash])?;
+            Ok(())
+        })
+    }
     pub fn create_session(
         &self,
         user_id: i64,
