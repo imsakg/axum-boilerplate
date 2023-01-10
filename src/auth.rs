@@ -9,7 +9,10 @@ pub fn routes() -> Router<AppState> {
         .route("/api/auth/login", post(login))
         .route("/api/auth/refresh", post(refresh))
         .route("/api/auth/logout", post(logout))
-        .route("/api/me", axum::routing::get(me))
+        .route(
+            "/api/me",
+            axum::routing::get(me).patch(crate::profile::update),
+        )
 }
 
 #[derive(Deserialize)]

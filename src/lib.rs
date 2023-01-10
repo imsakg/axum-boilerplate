@@ -7,6 +7,7 @@ pub mod error;
 pub mod identity;
 pub mod jwt;
 pub mod model;
+mod profile;
 pub mod state;
 pub mod validation;
 pub mod web;

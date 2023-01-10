@@ -3,6 +3,15 @@ use crate::{model::User, Result};
 use rusqlite::{params, OptionalExtension};
 
 impl Database {
+    pub fn update_profile(&self, id: i64, name: &str) -> Result<User> {
+        self.with(|c| {
+            c.execute(
+                "UPDATE users SET display_name=?1 WHERE id=?2",
+                params![name, id],
+            )?;
+            Ok(c.query_row("SELECT * FROM users WHERE id=?1", [id], User::from_row)?)
+        })
+    }
     pub fn create_user(&self, email: &str, password_hash: &str) -> Result<User> {
         self.with(|c| {
             c.execute(
