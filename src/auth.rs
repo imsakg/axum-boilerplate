@@ -10,6 +10,10 @@ pub fn routes() -> Router<AppState> {
         .route("/api/auth/refresh", post(refresh))
         .route("/api/auth/logout", post(logout))
         .route(
+            "/api/auth/change-password",
+            post(crate::profile::change_password),
+        )
+        .route(
             "/api/me",
             axum::routing::get(me).patch(crate::profile::update),
         )

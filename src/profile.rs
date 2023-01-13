@@ -3,6 +3,36 @@ use axum::{extract::State, Json};
 use serde::Deserialize;
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
+pub(crate) struct PasswordInput {
+    current_password: String,
+    new_password: String,
+}
+
+pub(crate) async fn change_password(
+    State(state): State<AppState>,
+    Authenticated(user): Authenticated,
+    Json(input): Json<PasswordInput>,
+) -> Result<axum::http::StatusCode> {
+    crate::validation::password(&input.new_password)?;
+    if input.current_password.len() > 128 {
+        return Err(Error::Unauthorized);
+    }
+    state
+        .run(move |state| {
+            if !crate::crypto::verify_password(&input.current_password, &user.password_hash) {
+                return Err(Error::Unauthorized);
+            }
+            let hash = crate::crypto::hash_password(&input.new_password)?;
+            state
+                .db
+                .change_password(user.id, &user.password_hash, &hash)
+        })
+        .await?;
+    Ok(axum::http::StatusCode::NO_CONTENT)
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct ProfileInput {
     display_name: String,
 }

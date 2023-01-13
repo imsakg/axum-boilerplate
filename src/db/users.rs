@@ -3,6 +3,18 @@ use crate::{model::User, Result};
 use rusqlite::{params, OptionalExtension};
 
 impl Database {
+    pub fn change_password(&self, id: i64, expected_hash: &str, new_hash: &str) -> Result<()> {
+        self.with(|c| {
+            let tx=c.transaction()?;
+            let updated=tx.execute("UPDATE users SET password_hash=?1,token_version=token_version+1 WHERE id=?2 AND password_hash=?3",params![new_hash,id,expected_hash])?;
+            if updated!=1 { return Err(crate::Error::Unauthorized); }
+            tx.execute("DELETE FROM refresh_tokens WHERE user_id=?1",[id])?;
+            tx.execute("DELETE FROM challenges WHERE user_id=?1",[id])?;
+            tx.execute("DELETE FROM outbox WHERE user_id=?1",[id])?;
+            tx.commit()?;
+            Ok(())
+        })
+    }
     pub fn update_profile(&self, id: i64, name: &str) -> Result<User> {
         self.with(|c| {
             c.execute(
