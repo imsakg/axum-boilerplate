@@ -8,6 +8,7 @@ pub mod identity;
 pub mod jwt;
 pub mod model;
 mod profile;
+pub mod recovery;
 pub mod state;
 pub mod validation;
 pub mod web;
@@ -31,6 +32,7 @@ pub fn app(state: state::AppState) -> Router {
         .route("/hello", get(hello))
         .route("/hello2/:name", get(hello_name))
         .merge(auth::routes())
+        .merge(recovery::routes())
         .with_state(state)
         .layer(CookieManagerLayer::new())
         .fallback_service(get_service(ServeDir::new("./")))
