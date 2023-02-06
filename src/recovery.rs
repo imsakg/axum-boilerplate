@@ -5,8 +5,41 @@ use serde::Deserialize;
 use serde_json::{json, Value};
 
 pub fn routes() -> Router<AppState> {
-    Router::new().route("/api/auth/forgot-password", post(forgot_password))
+    Router::new()
+        .route("/api/auth/forgot-password", post(forgot_password))
+        .route("/api/auth/reset-password", post(reset_password))
 }
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ResetInput {
+    token: String,
+    password: String,
+}
+
+fn check_token(token: &str) -> Result<()> {
+    if token.len() != 64 || !token.bytes().all(|b| b.is_ascii_hexdigit()) {
+        return Err(crate::Error::Unauthorized);
+    }
+    Ok(())
+}
+
+async fn reset_password(
+    State(state): State<AppState>,
+    Json(input): Json<ResetInput>,
+) -> Result<StatusCode> {
+    check_token(&input.token)?;
+    validation::password(&input.password)?;
+    state
+        .run(move |state| {
+            let hash = crypto::hash_password(&input.password)?;
+            state
+                .db
+                .complete_challenge(&input.token, "reset", crypto::now(), Some(&hash))
+        })
+        .await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct EmailInput {
