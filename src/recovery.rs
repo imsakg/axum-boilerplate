@@ -8,12 +8,54 @@ pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/api/auth/forgot-password", post(forgot_password))
         .route("/api/auth/reset-password", post(reset_password))
+        .route("/api/auth/request-verification", post(request_verification))
+        .route("/api/auth/verify-email", post(verify_email))
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct ResetInput {
     token: String,
     password: String,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct TokenInput {
+    token: String,
+}
+
+async fn request_verification(
+    State(state): State<AppState>,
+    crate::identity::Authenticated(user): crate::identity::Authenticated,
+) -> Result<StatusCode> {
+    if !user.verified {
+        state
+            .run(move |state| {
+                state.db.issue_challenge(
+                    user.id,
+                    "verify",
+                    &crypto::opaque_token(),
+                    crypto::now() + 86400,
+                )
+            })
+            .await?;
+    }
+    Ok(StatusCode::ACCEPTED)
+}
+
+async fn verify_email(
+    State(state): State<AppState>,
+    Json(input): Json<TokenInput>,
+) -> Result<StatusCode> {
+    check_token(&input.token)?;
+    state
+        .run(move |state| {
+            state
+                .db
+                .complete_challenge(&input.token, "verify", crypto::now(), None)
+        })
+        .await?;
+    Ok(StatusCode::NO_CONTENT)
 }
 
 fn check_token(token: &str) -> Result<()> {
