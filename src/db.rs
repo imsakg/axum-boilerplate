@@ -1,6 +1,7 @@
 //! SQLite storage. Run repository operations on a blocking worker, not a reactor.
 mod challenges;
 mod sessions;
+mod tickets;
 mod users;
 use crate::{Error, Result};
 use rusqlite::Connection;

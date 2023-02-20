@@ -48,6 +48,26 @@ pub async fn request(
     };
     (status, value)
 }
+pub async fn login(app: &Router, email: &str) -> Value {
+    let (status, body) = request(
+        app,
+        "POST",
+        "/api/auth/login",
+        json!({"email":email,"password":"a correct horse battery"}),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    body
+}
+pub async fn account(app: &Router, email: &str) -> String {
+    register(app, email).await;
+    login(app, email).await["access_token"]
+        .as_str()
+        .unwrap()
+        .to_owned()
+}
+
 pub async fn register(app: &Router, email: &str) -> Value {
     let (status, body) = request(
         app,
