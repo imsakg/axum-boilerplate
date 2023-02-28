@@ -10,6 +10,7 @@ pub mod model;
 mod profile;
 pub mod recovery;
 pub mod state;
+pub mod tickets;
 pub mod validation;
 pub mod web;
 pub use error::{Error, Result};
@@ -33,6 +34,7 @@ pub fn app(state: state::AppState) -> Router {
         .route("/hello2/:name", get(hello_name))
         .merge(auth::routes())
         .merge(recovery::routes())
+        .merge(tickets::routes())
         .with_state(state)
         .layer(CookieManagerLayer::new())
         .fallback_service(get_service(ServeDir::new("./")))
