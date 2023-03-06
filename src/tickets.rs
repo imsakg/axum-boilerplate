@@ -3,8 +3,20 @@ use axum::{extract::State, http::StatusCode, routing::post, Json, Router};
 use serde::Deserialize;
 
 pub fn routes() -> Router<AppState> {
-    Router::new().route("/api/tickets", post(create))
+    Router::new()
+        .route("/api/tickets", post(create))
+        .route("/api/tickets/:id", axum::routing::get(read))
 }
+async fn read(
+    State(state): State<AppState>,
+    Authenticated(user): Authenticated,
+    axum::extract::Path(id): axum::extract::Path<i64>,
+) -> Result<Json<Ticket>> {
+    Ok(Json(
+        state.run(move |state| state.db.ticket(user.id, id)).await?,
+    ))
+}
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct CreateInput {
