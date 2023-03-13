@@ -2,6 +2,18 @@ use super::Database;
 use crate::{model::Ticket, validation, Error, Result};
 use rusqlite::{params, OptionalExtension};
 impl Database {
+    pub fn list_tickets(&self, owner: i64, limit: i64, offset: i64) -> Result<Vec<Ticket>> {
+        if !(1..=100).contains(&limit) || !(0..=100000).contains(&offset) {
+            return Err(Error::BadRequest("Invalid pagination bounds"));
+        }
+        self.with(|c| {
+            let mut stmt = c.prepare(
+                "SELECT * FROM tickets WHERE owner_id=?1 ORDER BY id ASC LIMIT ?2 OFFSET ?3",
+            )?;
+            let rows = stmt.query_map(params![owner, limit, offset], Ticket::from_row)?;
+            Ok(rows.collect::<rusqlite::Result<Vec<_>>>()?)
+        })
+    }
     pub fn create_ticket(&self, owner: i64, title: &str) -> Result<Ticket> {
         let title = validation::title(title)?;
         self.with(|c| {
