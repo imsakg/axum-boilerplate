@@ -5,7 +5,7 @@ use serde::Deserialize;
 pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/api/tickets", post(create).get(list))
-        .route("/api/tickets/:id", axum::routing::get(read))
+        .route("/api/tickets/:id", axum::routing::get(read).patch(update))
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -36,6 +36,29 @@ async fn read(
 ) -> Result<Json<Ticket>> {
     Ok(Json(
         state.run(move |state| state.db.ticket(user.id, id)).await?,
+    ))
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct UpdateInput {
+    title: Option<String>,
+    status: Option<String>,
+}
+async fn update(
+    State(state): State<AppState>,
+    Authenticated(user): Authenticated,
+    axum::extract::Path(id): axum::extract::Path<i64>,
+    Json(input): Json<UpdateInput>,
+) -> Result<Json<Ticket>> {
+    Ok(Json(
+        state
+            .run(move |state| {
+                state
+                    .db
+                    .update_ticket(user.id, id, input.title.as_deref(), input.status.as_deref())
+            })
+            .await?,
     ))
 }
 
