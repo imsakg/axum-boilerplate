@@ -2,6 +2,18 @@ use super::Database;
 use crate::{model::Ticket, validation, Error, Result};
 use rusqlite::{params, OptionalExtension};
 impl Database {
+    pub fn delete_ticket(&self, owner: i64, id: i64) -> Result<()> {
+        self.with(|c| {
+            let changed = c.execute(
+                "DELETE FROM tickets WHERE id=?1 AND owner_id=?2",
+                params![id, owner],
+            )?;
+            if changed != 1 {
+                return Err(Error::NotFound);
+            }
+            Ok(())
+        })
+    }
     pub fn update_ticket(
         &self,
         owner: i64,

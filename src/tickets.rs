@@ -5,7 +5,10 @@ use serde::Deserialize;
 pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/api/tickets", post(create).get(list))
-        .route("/api/tickets/:id", axum::routing::get(read).patch(update))
+        .route(
+            "/api/tickets/:id",
+            axum::routing::get(read).patch(update).delete(delete),
+        )
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -27,6 +30,17 @@ async fn list(
     Ok(Json(
         serde_json::json!({"items":items,"limit":limit,"offset":offset}),
     ))
+}
+
+async fn delete(
+    State(state): State<AppState>,
+    Authenticated(user): Authenticated,
+    axum::extract::Path(id): axum::extract::Path<i64>,
+) -> Result<StatusCode> {
+    state
+        .run(move |state| state.db.delete_ticket(user.id, id))
+        .await?;
+    Ok(StatusCode::NO_CONTENT)
 }
 
 async fn read(
