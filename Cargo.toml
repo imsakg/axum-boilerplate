@@ -12,6 +12,7 @@ axum = "0.6"
 # Serde / JSON
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+tower-http = { verson = "0.4", features = ["fs"] }
 
 
 [dev-dependencies]
