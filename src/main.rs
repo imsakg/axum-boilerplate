@@ -10,6 +10,7 @@ async fn main() {
         "/hello",
         get(|| async { Html("Hello <strong>World!</strong>") }),
     );
+
     /* #region: Start Server */
     let addr = SocketAddr::from(([127, 0, 0, 1], 5353));
     println!("--> Server running on: http://{}/", addr);
@@ -17,7 +18,6 @@ async fn main() {
         .serve(routes_hello.into_make_service())
         .await
         .unwrap();
-
     /* #endregion */
 
     println!("Hello, world!");
