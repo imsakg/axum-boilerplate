@@ -1,12 +1,12 @@
 //! Simplistic Model Layer
 //! (with mock-store layer)
 
-use crate::{Error, Result};
+use crate::{ctx::Ctx, Error, Result};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 
 /* #region: Ticket Types */
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Ticket {
     pub id: u64,
     pub title: String,

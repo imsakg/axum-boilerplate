@@ -4,6 +4,7 @@ use anyhow::Result;
 use serde_json::json;
 
 #[tokio::test]
+#[ignore = "requires running server on :5353"]
 async fn quick_dev() -> Result<()> {
     let hc = httpc_test::new_client("http://127.0.0.1:5353")?;
 
